@@ -1,1 +1,113 @@
-Hello, world!
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        #outer {
+            display: grid;
+            grid-template-columns: 4fr 1fr;
+            gap: 30px;
+        }
+
+        #term {
+            background-color: linen;
+            font-family: monospace, monospace;
+            line-height 135%;
+            grid-column 1 / 1;
+        }
+
+        #stats {
+            grid-column 2 /2 ;
+        }
+
+
+        .prompt-line {
+            line-height: 155%;
+        }
+
+        input {
+            caret-color red;
+        }
+
+        [contenteditable]:focus {
+            outline: 0px solid transparent;
+        }
+
+    </style>
+
+    <script>
+        function dofocus(r) {
+            t = r.querySelector(".active-line");
+            t.focus();
+
+            // https://stackoverflow.com/a/69727327
+            sel = window.getSelection();
+            sel.selectAllChildren(t);
+            sel.collapseToEnd();
+        }
+
+
+        function keydown(ele) {
+            if (event.key == 'Enter') {
+                // prevent <br> from appearing due to RETURN press.
+                event.preventDefault();
+
+                oldprompt = ele.closest(".prompt-line");
+
+                var rsp = document.createElement("div");
+                rsp.classList.add("response-line")
+                var content = document.createTextNode(ele.textContent)
+                rsp.appendChild(content);
+
+
+                ele.after(rsp);
+                ele.setAttribute("contenteditable", false);
+
+                var newprompt = document.createElement("div");
+                newprompt.classList.add("prompt-line");
+                newprompt.setAttribute("onclick", "dofocus(this)");
+
+                var pr = document.createElement("span");
+                pr.classList.add("prompt")
+                pr.textContent = "> "
+
+                var active = document.createElement("span");
+                active.classList.add("active-line");
+                active.setAttribute("contenteditable", true);
+                active.setAttribute("onkeydown", "keydown(this)");
+                active.innerHTML = "";
+                active.replaceChildren();   // get rid of <br> nodes...
+                console.log(active)
+
+                newprompt.appendChild(pr);
+                newprompt.appendChild(active);
+
+                oldprompt.after(newprompt);
+
+                active.focus();
+            }
+        }
+
+    </script>
+</head>
+
+
+<body>
+    <div id="outer">
+        <div id="term">
+            <div class="prompt-line" onclick="dofocus(this)">
+                <span class="prompt">&gt; </span>
+                <span class="active-line"
+                      contenteditable="true"
+                      autofocus="true"
+                      onkeydown="keydown(this)">
+                </span>
+            </div>
+        </div>
+
+        <div id="stats">
+            placeholder
+        </div>
+
+    </div>
+</body>
+</html>

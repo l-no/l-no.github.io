@@ -1,52 +1,68 @@
-function dofocus(r) {
-    t = r.querySelector(".active-line");
-    t.focus();
 
-    // https://stackoverflow.com/a/69727327
-    sel = window.getSelection();
-    sel.selectAllChildren(t);
-    sel.collapseToEnd();
+function handle_success(q, answers) {
+    let t = '<div class="correct">correct</div>';
+    t += '<div></div>';
+    t += `<div class="answers">correct: ${answers}</div>`
+    let correct = create_inactive(t);
+    q.appendChild(create_prompt(""));
+    q.appendChild(correct);
+    add_question();
 }
 
+function handle_error(q, giveup, answers) {
+    let t = '<div class="incorrect">incorrect</div>';
+    if (giveup) {
+        t += '<div></div>';
+        t += `<div class="answers">correct: ${answers}</div>`
+    }
+
+    let incorrect = create_inactive(t);
+
+    q.appendChild(create_prompt(""));
+    q.appendChild(incorrect);
+    if (!giveup) {
+        q.appendChild(create_prompt(">> " ));
+        let tofocus = create_active()
+        q.appendChild(tofocus);
+        tofocus.focus();
+    }
+    else {
+        add_question();
+    }
+}
 
 function keydown(ele) {
     if (event.key == 'Enter') {
         // prevent <br> from appearing due to RETURN press.
         event.preventDefault();
 
-        oldprompt = ele.closest(".prompt-line");
+        let q = ele.closest(".onequestion");
+        let current = JSON.parse(q.getAttribute("current"));
+        let guess = ele.innerText.trim().toLowerCase();
 
-        var rsp = document.createElement("div");
-        rsp.classList.add("response-line")
-        var content = document.createTextNode(ele.textContent)
-        rsp.appendChild(content);
+        let correct = current['answers'].includes(guess);
+        let giveup = guess == "";
 
-
-        ele.after(rsp);
         ele.setAttribute("contenteditable", false);
 
-        var newprompt = document.createElement("div");
-        newprompt.classList.add("prompt-line");
-        newprompt.setAttribute("onclick", "dofocus(this)");
+        let tallied = q.getAttribute("tallied");
+        if (correct) {
+            handle_success(q, current['answers_accented']);
+            if (!tallied) {
+                update_stats(true);
+            }
+        }
+        else {
+            handle_error(q, giveup, current['answers_accented']);
+            let tallied = q.getAttribute("tallied");
+            if (!tallied) {
+                q.setAttribute("tallied", true);
+                update_stats(false,
+                    current["word_accented"],
+                    current["plur"] + "," + current["case"]);
+            }
+        }
 
-        var pr = document.createElement("span");
-        pr.classList.add("prompt")
-        pr.textContent = "> "
-
-        var active = document.createElement("span");
-        active.classList.add("active-line");
-        active.setAttribute("contenteditable", true);
-        active.setAttribute("onkeydown", "keydown(this)");
-        active.innerHTML = "";
-        active.replaceChildren();   // get rid of <br> nodes...
-        console.log(active)
-
-        newprompt.appendChild(pr);
-        newprompt.appendChild(active);
-
-        oldprompt.after(newprompt);
-
-        active.focus();
     }
 }
 
@@ -65,7 +81,6 @@ function get_one(nouns, word) {
 
         if (word == null) {
             word = rchoice(Object.keys(nouns));
-            console.log("word: ", word);
         }
 
         cse  = rchoice(Object.keys(nouns[word]["accented"]));
@@ -77,7 +92,6 @@ function get_one(nouns, word) {
             plur = tmp[plur];
         }
 
-        console.log(cse, anim, gender, plur);
 
         answers = nouns[word][cse][plur];
         if (answers.length > 0) {
@@ -94,6 +108,8 @@ function get_one(nouns, word) {
     answers_accented = nouns[word]['accented'][cse][plur];
 
     return {
+        'word' : word,
+        'answers' : nouns[word][cse][plur],
         'word_accented' : word_accented,
         'answers_accented' : answers_accented,
         'case' : cse,
@@ -103,43 +119,45 @@ function get_one(nouns, word) {
         'attrs' : nouns[word]['declension_attributes'],
     }
 }
-/*
-            <div class="onequestion" onclick="dofocus(this)">
-                <div class="prompt">&gt; </div>
-                <div class="active-line"
-                      contenteditable="false"
-                      autofocus="true"
-                      onkeydown="keydown(this)">
-                    Press &lt;return&gt; to start.
-                </div>
-            </div>
-*/
 
-function add_question(ele) {
+function add_question(first) {
+    term = document.querySelector("#term");
+
+    if (!first) {
+        let hr = create_inactive("<div><hr></div>".repeat(3));
+        term.appendChild(hr);
+    }
+
     let current = get_one(nouns);
 
     let q = document.createElement("div");
     q.classList.add("onequestion");
     q.setAttribute('current', JSON.stringify(current));
 
+    let url = `https://en.wiktionary.org/wiki/${current["word"]}`;
     let plur = current["plur"];
     let cse = current["case"];
     let d1 = `<div class="${plur}">${plur}</div>`;
     let d2 = `<div class="${cse}">${cse}</div>`;
-    let d3 = `<div>${current["attrs"]}</div>`;
-    let d4 = `<div>${current['word_accented']}</div>`;
-    let t = d1 + d2 + d3 + d4;
+    let d3 = `<div>[${current["attrs"]}]</div>`;
+    let d4 = `<div class="word">
+                <a href=${url} target="_blank">${current['word_accented']}</a>
+              </div>`;
+    let d5 = "<div></div>"
+    let t = d4 + d5 + d3 + d1 + d2;
 
     q.appendChild(create_prompt("Q:"));
     q.appendChild(create_inactive(t));
 
     q.appendChild(create_prompt(">> " ));
-    q.appendChild(create_active());
+    tofocus = create_active();
+    q.appendChild(tofocus);
 
-    ele.appendChild(q);
+    term.appendChild(q);
+    tofocus.focus();
 }
 
-function create_active() {
+function create_active(focus) {
     let active = document.createElement("div");
     active.classList.add("active-line");
     active.setAttribute("contenteditable", true);
@@ -162,11 +180,62 @@ function create_prompt(text) {
     return p;
 }
 
+function init_stats() {
+    let stats = document.querySelector("#stats");
+    stats.setAttribute("total", 0);
+    stats.setAttribute("correct", 0);
+    stats.setAttribute("word_errors", "{}");
+    stats.setAttribute("case_errors", "{}");
+    let tmp = "Press [return] on an empty line for answer.<br><br><br>";
+    tmp += "0 / 0";
+    stats.innerHTML = tmp
+}
+
+function update_stats(correct, word, cse) {
+    let stats = document.querySelector("#stats");
+    let tmp = parseInt(stats.getAttribute("total")) + 1;
+    stats.setAttribute("total", tmp);
+    if (correct) {
+        tmp = parseInt(stats.getAttribute("correct")) + 1;
+        stats.setAttribute("correct", tmp);
+    }
+    else {
+        let word_errors = JSON.parse(stats.getAttribute("word_errors"));
+        if (word in word_errors) {
+            word_errors[word] += 1;
+        }
+        else {
+            word_errors[word] = 1;
+        }
+        stats.setAttribute('word_errors', JSON.stringify(word_errors));
+
+        let case_errors = JSON.parse(stats.getAttribute("case_errors"));
+        if (cse in case_errors) {
+            case_errors[cse] += 1;
+        }
+        else {
+            case_errors[cse] = 1;
+        }
+        stats.setAttribute('case_errors', JSON.stringify(case_errors));
+
+        tmp = "Press [return] on an empty line to see answer.<br><br><br>"
+        tmp += `${stats.getAttribute("correct")} / ${stats.getAttribute("total")}`;
+        tmp += "<br><br>Words:<br>";
+        for (const [k,v] of Object.entries(word_errors)) {
+            tmp += `${k} : ${v}<br>`
+        }
+        tmp += "<br>Cases:<br>";
+        for (const [k,v] of Object.entries(case_errors)) {
+            tmp += `${k} : ${v}<br>`
+        }
+        stats.innerHTML = tmp;
+
+    }
+}
+
 function init() {
-    //current = get_one(nouns) 
-    term = document.querySelector("#term");
-    add_question(term);
-    console.log("DONE");
+    add_question(true);
+    init_stats();
 }
 
 window.addEventListener("load", (e) => {init();});

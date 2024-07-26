@@ -4,7 +4,7 @@
     <style>
         #outer {
             display: grid;
-            grid-template-columns: 4fr 1fr;
+            grid-template-columns: 86ch auto;
             gap: 30px;
         }
 
@@ -42,10 +42,26 @@
             color: MediumSeaGreen;
         }
 
-        [contenteditable]:focus {
-            /*outline: 0px solid transparent;*/
+        .word {
+            font-weight: bold;
         }
 
+        .incorrect {
+            color: red;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .answers {
+            font-weight: bold;
+            text-decoration: underline dotted green;
+        }
+
+        [contenteditable]:focus {
+            outline: 0px solid transparent;
+        }
     </style>
     <script type="text/javascript" src="nouns.js"></script>
     <script type="text/javascript" src="logic.js"></script>
@@ -55,7 +71,7 @@
 <body>
     <div id="outer">
         <div id="term"> </div>
-        <div id="stats"> placeholder </div>
+        <div id="stats"></div>
     </div>
 </body>
 </html>

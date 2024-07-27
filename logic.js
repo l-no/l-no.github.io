@@ -112,6 +112,26 @@ function rchoice(a) {
     return a[Math.floor(a.length * Math.random())];
 }
 
+function weighted_choice(a, weights) {
+    console.log('weighted_choice', a, weights)
+    if (a.length == 0) {
+        throw new Error("Empty choice.");
+    }
+    if (a.length != weights.length) {
+        throw new Error("Different number of weights and choices");
+    }
+    let tot = 0;
+    let i;
+    for (i = 0; i < weights.length; i += 1) { tot += weights[i] }
+    let rnd = Math.random();
+    for (i = 0; i < weights.length; i += 1) {
+        let tmp = weights[i] / tot;
+        if (rnd <= tmp) { return a[i]; }
+        else { rnd -= tmp; }
+    }
+    throw new Error("Unreachable");
+}
+
 function get_noun(nouns, word) {
     for (i = 0; i < 20; i += 1) {
         if (i > 13) {
@@ -172,12 +192,19 @@ function get_verb(v, word) {
             word = rchoice(Object.keys(v));
         }
 
-        tense = 'infinitive';
-        while (tense == 'infinitive'
-            || Object.keys(v[word]["accented"][tense]).length == 0)
-        {
-            tense = rchoice(Object.keys(v[word]["accented"]));
+
+        let weights = new Array();
+        let j;
+        let keys = Object.keys(v[word]["accented"]);
+        for (j = 0; j < keys.length; j += 1) {
+            let tmpkey = keys[j];
+            if (tmpkey == "infinitive") {weights.push(0); continue;}
+            weights.push(Object.keys(v[word]["accented"][tmpkey]).length);
+            //console.log(weights);
         }
+        
+        console.log(word, Object.keys(v[word]['accented']), weights);
+        tense = weighted_choice(Object.keys(v[word]["accented"]), weights);
 
         //console.log(word, tense, Object.keys(v[word]["accented"][tense]));
         subj = rchoice(Object.keys(v[word]["accented"][tense]));

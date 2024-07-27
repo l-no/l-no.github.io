@@ -74,11 +74,12 @@
         }
 
         .plural { color: DodgerBlue; }
-        .singular { color: MediumSeaGreen; }
+        .singular { color: purple; }
+
         .present { color: DodgerBlue; }
-        .future { color: MediumSeaGreen; }
+        .future { color: purple; }
         .past { color: orange; }
-        .imperative { color: purple; }
+        .imperative { color: brown; }
 
         .word {
             font-weight: bold;
@@ -100,6 +101,14 @@
         [contenteditable]:focus {
             outline: 0px solid transparent;
         }
+
+        .credits {
+            color: gray;
+            padding-left: 3px;
+            padding-right: 3px;
+            margin-top: 3px;
+            margin-bottom: 3px;
+        }
     </style>
     <script type="text/javascript" src="nouns.js"></script>
     <script type="text/javascript" src="verbs.js"></script>
@@ -119,6 +128,20 @@
 
         <div id="noun_stats" class="stats"></div>
         <div id="verb_stats" class="stats"></div>
+    </div>
+
+    <div class="credits">
+        <h3>Credits:</h3>
+        Noun and verb list mostly from <a
+            href="http://masterrussian.com/vocabulary/Russian_Words.htm">Master Russian</a>.
+        <br>
+        Declensions and conjugations from <a
+          href=https://en.wiktionary.org/wiki/Wiktionary:Main_Page>English language Wiktionary</a>.
+        <br>
+        <br>
+        Submit bugs, issues, and feedback <a href="https://github.com/l-no/l-no.github.io/issues">here</a>.
+        <br>
+        View the source <a href="https://github.com/l-no/l-no.github.io/">here</a>.
     </div>
 </body>
 </html>

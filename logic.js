@@ -75,33 +75,12 @@ function keydown(ele) {
 
         let q = ele.closest(".onequestion");
         let current = JSON.parse(q.getAttribute("current"));
-        let guess = ele.innerText.trim().toLowerCase();
+        let guess = ele.innerText.trim().toLowerCase().replace(/s+/, ' ');
 
         let correct = null;
         let giveup = guess == "";
-        if (typeof current["answers"] == "string") {
-            if (current["answers"].includes(" ")) {
-                let tks1 = guess.split(/(\s+)/);
-                let tks2 = current['answers'].split(/(\s+)/);
-                if (tks1.length != tks2.length) {
-                    correct = false;
-                }
-                else {
-                    correct = true;
-                    var i;
-                    for (i = 0; i < tks1.length; i += 1) {
-                        correct &&= tks1[i] == tks2[i];
-                    }
-                }
-            }
-            else {
-                correct = current['answers'] == guess; 
-            }
-        }
-        else {
-            correct = current['answers'].includes(guess);
-
-        }
+        correct = current['answers'].includes(guess);
+        correct &&= !giveup;
 
         ele.setAttribute("contenteditable", false);
 

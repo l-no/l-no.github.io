@@ -1,15 +1,40 @@
+function tabclick(e) {
+    document.querySelectorAll(".tab").forEach((t) => {
+        t.style.backgroundColor = "white";
+    });
+    document.querySelectorAll(".term").forEach((t) => {
+        t.style.display = "none";
+    });
+    document.querySelectorAll(".stats").forEach((t) => {
+        t.style.display = "none";
+    });
 
-function handle_success(q, answers) {
+    let term = null;
+    let stats = null;
+    if (e.id == "noun_tab") {
+        term  = document.querySelector("#noun_term");
+        stats = document.querySelector("#noun_stats");
+    }
+    else if (e.id == "verb_tab") {
+        term  = document.querySelector("#verb_term");
+        stats = document.querySelector("#verb_stats");
+    }
+    term.style.display = "block";
+    stats.style.display = "block";
+    e.style.backgroundColor = "linen";
+}
+
+function handle_success(q, answers, fn) {
     let t = '<div class="correct">correct</div>';
     t += '<div></div>';
     t += `<div class="answers">correct: ${answers}</div>`
     let correct = create_inactive(t);
     q.appendChild(create_prompt(""));
     q.appendChild(correct);
-    add_question();
+    fn();
 }
 
-function handle_error(q, giveup, answers) {
+function handle_error(q, giveup, answers, fn) {
     let t = '<div class="incorrect">incorrect</div>';
     if (giveup) {
         t += '<div></div>';
@@ -27,7 +52,7 @@ function handle_error(q, giveup, answers) {
         tofocus.focus();
     }
     else {
-        add_question();
+        fn();
     }
 }
 
@@ -35,6 +60,18 @@ function keydown(ele) {
     if (event.key == 'Enter') {
         // prevent <br> from appearing due to RETURN press.
         event.preventDefault();
+
+        term = ele.closest(".term");
+        let fn = null;
+        let stats = null;
+        if      (term.id == "noun_term") {
+            fn = add_noun_question;
+            stats = document.querySelector("#noun_stats");
+        }
+        else if (term.id == "verb_term") {
+            fn = add_verb_question;
+            stats = document.querySelector("#verb_stats");
+        }
 
         let q = ele.closest(".onequestion");
         let current = JSON.parse(q.getAttribute("current"));
@@ -47,19 +84,19 @@ function keydown(ele) {
 
         let tallied = q.getAttribute("tallied");
         if (correct) {
-            handle_success(q, current['answers_accented']);
+            handle_success(q, current['answers_accented'], fn);
             if (!tallied) {
-                update_stats(true);
+                update_stats(stats, true);
             }
         }
         else {
-            handle_error(q, giveup, current['answers_accented']);
+            handle_error(q, giveup, current['answers_accented'], fn);
             let tallied = q.getAttribute("tallied");
             if (!tallied) {
                 q.setAttribute("tallied", true);
-                update_stats(false,
+                update_stats(stats, false,
                     current["word_accented"],
-                    current["plur"] + "," + current["case"]);
+                    current["tense"] + "," + current["subj"]);
             }
         }
 
@@ -73,7 +110,7 @@ function rchoice(a) {
     return a[Math.floor(a.length * Math.random())];
 }
 
-function get_one(nouns, word) {
+function get_noun(nouns, word) {
     for (i = 0; i < 20; i += 1) {
         if (i > 13) {
             throw new Error("No answers after multiple tries: ", word);
@@ -120,15 +157,92 @@ function get_one(nouns, word) {
     }
 }
 
-function add_question(first) {
-    term = document.querySelector("#term");
+function get_verb(v, word) {
+    let tense = null;
+    let subj = null;
+    let anwser = null;
+    for (i = 0; i < 20; i += 1) {
+        if (i > 13) {
+            throw new Error("No answers after multiple tries: ", word);
+        }
+
+        if (word == null) {
+            word = rchoice(Object.keys(v));
+        }
+
+        tense = 'infinitive';
+        while (tense == 'infinitive') {
+            tense  = rchoice(Object.keys(v[word]["accented"]));
+        }
+
+        subj = rchoice(Object.keys(v[word]["accented"][tense]));
+
+        //console.log(word, tense, subj);
+        answer = v[word][tense][subj];
+        break;
+    }
+
+    //let word_accented = v[word]['accented']['nominative']['singular']
+    // TODO
+    let word_accented = v[word]['accented']['infinitive'];
+
+    return {
+        'word' : word,
+        'word_accented' : word_accented,
+        'subj' : subj,
+        'tense' : tense,
+        'answers' : answer,
+        'answers_accented' : v[word]['accented'][tense][subj],
+        'attrs' : v[word]['attrs'],
+    }
+}
+
+function add_verb_question(first) {
+    term = document.querySelector("#verb_term");
 
     if (!first) {
         let hr = create_inactive("<div><hr></div>".repeat(3));
         term.appendChild(hr);
     }
 
-    let current = get_one(nouns);
+    let current = get_verb(verbs);
+
+    let q = document.createElement("div");
+    q.classList.add("onequestion");
+    q.setAttribute('current', JSON.stringify(current));
+
+    let url = `https://en.wiktionary.org/wiki/${current["word"]}#Russian`;
+    let tense = current["tense"];
+    let subj = current["subj"];
+    let d1 = `<div class="${tense}">${tense}</div>`;
+    let d2 = `<div>${subj}</div>`;
+    let d3 = `<div>[${current["attrs"]}]</div>`;
+    let d4 = `<div class="word">
+                <a href=${url} target="_blank">${current['word_accented']}</a>
+              </div>`;
+    let d5 = "<div></div>"
+    let t = d4 + d5 + d3 + d1 + d2;
+
+    q.appendChild(create_prompt("Q:"));
+    q.appendChild(create_inactive(t));
+
+    q.appendChild(create_prompt(">> " ));
+    tofocus = create_active();
+    q.appendChild(tofocus);
+
+    term.appendChild(q);
+    tofocus.focus();
+}
+
+function add_noun_question(first) {
+    term = document.querySelector("#noun_term");
+
+    if (!first) {
+        let hr = create_inactive("<div><hr></div>".repeat(3));
+        term.appendChild(hr);
+    }
+
+    let current = get_noun(nouns);
 
     let q = document.createElement("div");
     q.classList.add("onequestion");
@@ -181,18 +295,22 @@ function create_prompt(text) {
 }
 
 function init_stats() {
-    let stats = document.querySelector("#stats");
-    stats.setAttribute("total", 0);
-    stats.setAttribute("correct", 0);
-    stats.setAttribute("word_errors", "{}");
-    stats.setAttribute("case_errors", "{}");
-    let tmp = "Press [return] on an empty line for answer.<br><br><br>";
-    tmp += "0 / 0";
-    stats.innerHTML = tmp
+    var i;
+    let ids = ['noun_stats', 'verb_stats'];
+    for (i = 0;  i < ids.length; i += 1) {
+        let id = ids[i];
+        let stats = document.querySelector("#" + id);
+        stats.setAttribute("total", 0);
+        stats.setAttribute("correct", 0);
+        stats.setAttribute("word_errors", "{}");
+        stats.setAttribute("case_errors", "{}");
+        let tmp = "Press [return] on an empty line for answer.<br><br><br>";
+        tmp += "0 / 0";
+        stats.innerHTML = tmp;
+    }
 }
 
-function update_stats(correct, word, cse) {
-    let stats = document.querySelector("#stats");
+function update_stats(stats, correct, word, cse) {
     let tmp = parseInt(stats.getAttribute("total")) + 1;
     stats.setAttribute("total", tmp);
     if (correct) {
@@ -227,7 +345,7 @@ function update_stats(correct, word, cse) {
     for (const [k,v] of Object.entries(word_errors)) {
         tmp += `${k} : ${v}<br>`
     }
-    tmp += "<br>Cases:<br>";
+    tmp += "<br>Cases/Tenses:<br>";
     for (const [k,v] of Object.entries(case_errors)) {
         tmp += `${k} : ${v}<br>`
     }
@@ -236,7 +354,8 @@ function update_stats(correct, word, cse) {
 }
 
 function init() {
-    add_question(true);
+    add_noun_question(true);
+    add_verb_question(true);
     init_stats();
 }
 

@@ -8,23 +8,55 @@
             gap: 30px;
         }
 
-        #term {
+        .term {
             background-color: linen;
             font-family: monospace, monospace;
             line-height 135%;
             grid-column 1 / 1;
-            height: 500px;
+            min-height: 500px;
             overflow: scroll;
             outline-style: solid;
             outline-color: lightgray;
+            border-radius: 1px;
         }
 
-        #stats {
+        #verb_term {
+            display: none;
+        }
+
+        .stats {
             grid-column 2 /2 ;
             height: 500px;
             overflow: scroll;
             outline-style: solid;
             outline-color: lightgray;
+            border-radius: 1px;
+        }
+
+        #verb_stats {
+            display: none;
+        }
+
+        .tab {
+            outline-style: solid;
+            outline-color: lightgray;
+            border-radius: 1px;
+            padding-left: 3px;
+            padding-right: 3px;
+        }
+        .tabholder {
+            margin-top: 3px;
+            margin-bottom: 3px;
+        }
+
+        #verb_tab { }
+        #adj_tab { 
+            text-decoration: line-through;
+            color: lightgray;
+        }
+
+        #noun_tab {
+            background-color : linen;
         }
 
         .onequestion {
@@ -38,15 +70,15 @@
             display: grid;
             /* singular is 8 chars long */
             /* prepositional is 13 chars long */
-            grid-template-columns: 10ch 20ch auto;
+            grid-template-columns: 14ch 20ch auto;
         }
 
-        .plural {
-            color: DodgerBlue;
-        }
-        .singular {
-            color: MediumSeaGreen;
-        }
+        .plural { color: DodgerBlue; }
+        .singular { color: MediumSeaGreen; }
+        .present { color: DodgerBlue; }
+        .future { color: MediumSeaGreen; }
+        .past { color: orange; }
+        .imperative { color: purple; }
 
         .word {
             font-weight: bold;
@@ -70,14 +102,23 @@
         }
     </style>
     <script type="text/javascript" src="nouns.js"></script>
+    <script type="text/javascript" src="verbs.js"></script>
     <script type="text/javascript" src="logic.js"></script>
 </head>
 
 
 <body>
+    <div class="tabholder">
+        <span id="noun_tab" class="tab" onclick="tabclick(this)">nouns</span>
+        <span id="verb_tab" class="tab" onclick="tabclick(this)">verbs</span>
+        <span id="adj_tab"  class="tab">adjectives</span>
+    </div>
     <div id="outer">
-        <div id="term"> </div>
-        <div id="stats"></div>
+        <div id="noun_term" class="term"></div>
+        <div id="verb_term" class="term"></div>
+
+        <div id="noun_stats" class="stats"></div>
+        <div id="verb_stats" class="stats"></div>
     </div>
 </body>
 </html>

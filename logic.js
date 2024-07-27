@@ -134,7 +134,7 @@ function add_question(first) {
     q.classList.add("onequestion");
     q.setAttribute('current', JSON.stringify(current));
 
-    let url = `https://en.wiktionary.org/wiki/${current["word"]}`;
+    let url = `https://en.wiktionary.org/wiki/${current["word"]}#Russian`;
     let plur = current["plur"];
     let cse = current["case"];
     let d1 = `<div class="${plur}">${plur}</div>`;
@@ -217,20 +217,22 @@ function update_stats(correct, word, cse) {
             case_errors[cse] = 1;
         }
         stats.setAttribute('case_errors', JSON.stringify(case_errors));
-
-        tmp = "Press [return] on an empty line to see answer.<br><br><br>"
-        tmp += `${stats.getAttribute("correct")} / ${stats.getAttribute("total")}`;
-        tmp += "<br><br>Words:<br>";
-        for (const [k,v] of Object.entries(word_errors)) {
-            tmp += `${k} : ${v}<br>`
-        }
-        tmp += "<br>Cases:<br>";
-        for (const [k,v] of Object.entries(case_errors)) {
-            tmp += `${k} : ${v}<br>`
-        }
-        stats.innerHTML = tmp;
-
     }
+    let word_errors = JSON.parse(stats.getAttribute("word_errors"));
+    let case_errors = JSON.parse(stats.getAttribute("case_errors"));
+
+    tmp = "Press [return] on an empty line to see answer.<br><br><br>"
+    tmp += `${stats.getAttribute("correct")} / ${stats.getAttribute("total")}`;
+    tmp += "<br><br>Words:<br>";
+    for (const [k,v] of Object.entries(word_errors)) {
+        tmp += `${k} : ${v}<br>`
+    }
+    tmp += "<br>Cases:<br>";
+    for (const [k,v] of Object.entries(case_errors)) {
+        tmp += `${k} : ${v}<br>`
+    }
+    stats.innerHTML = tmp;
+
 }
 
 function init() {

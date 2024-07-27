@@ -64,7 +64,7 @@ function keydown(ele) {
         term = ele.closest(".term");
         let fn = null;
         let stats = null;
-        if      (term.id == "noun_term") {
+        if (term.id == "noun_term") {
             fn = add_noun_question;
             stats = document.querySelector("#noun_stats");
         }
@@ -77,8 +77,31 @@ function keydown(ele) {
         let current = JSON.parse(q.getAttribute("current"));
         let guess = ele.innerText.trim().toLowerCase();
 
-        let correct = current['answers'].includes(guess);
+        let correct = null;
         let giveup = guess == "";
+        if (typeof current["answers"] == "string") {
+            if (current["answers"].includes(" ")) {
+                let tks1 = guess.split(/(\s+)/);
+                let tks2 = current['answers'].split(/(\s+)/);
+                if (tks1.length != tks2.length) {
+                    correct = false;
+                }
+                else {
+                    correct = true;
+                    var i;
+                    for (i = 0; i < tks1.length; i += 1) {
+                        correct &&= tks1[i] == tks2[i];
+                    }
+                }
+            }
+            else {
+                correct = current['answers'] == guess; 
+            }
+        }
+        else {
+            correct = current['answers'].includes(guess);
+
+        }
 
         ele.setAttribute("contenteditable", false);
 
@@ -161,8 +184,8 @@ function get_verb(v, word) {
     let tense = null;
     let subj = null;
     let anwser = null;
-    for (i = 0; i < 20; i += 1) {
-        if (i > 13) {
+    for (i = 0; i < 100; i += 1) {
+        if (i > 70) {
             throw new Error("No answers after multiple tries: ", word);
         }
 
@@ -179,7 +202,11 @@ function get_verb(v, word) {
 
         //console.log(word, tense, subj);
         answer = v[word][tense][subj];
-        break;
+        if (answer != null) {
+            // some things have nulls when that form isn't used/is missing.
+            break; 
+        }
+        //console.log('no answer', word, tense, subj, answer);
     }
 
     //let word_accented = v[word]['accented']['nominative']['singular']

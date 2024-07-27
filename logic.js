@@ -173,13 +173,15 @@ function get_verb(v, word) {
         }
 
         tense = 'infinitive';
-        while (tense == 'infinitive') {
-            tense  = rchoice(Object.keys(v[word]["accented"]));
+        while (tense == 'infinitive'
+            || Object.keys(v[word]["accented"][tense]).length == 0)
+        {
+            tense = rchoice(Object.keys(v[word]["accented"]));
         }
 
+        //console.log(word, tense, Object.keys(v[word]["accented"][tense]));
         subj = rchoice(Object.keys(v[word]["accented"][tense]));
 
-        //console.log(word, tense, subj);
         answer = v[word][tense][subj];
         if (answer != null) {
             // some things have nulls when that form isn't used/is missing.

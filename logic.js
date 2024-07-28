@@ -113,7 +113,7 @@ function rchoice(a) {
 }
 
 function weighted_choice(a, weights) {
-    console.log('weighted_choice', a, weights)
+    //console.log('weighted_choice', a, weights)
     if (a.length == 0) {
         throw new Error("Empty choice.");
     }
@@ -203,7 +203,7 @@ function get_verb(v, word) {
             //console.log(weights);
         }
         
-        console.log(word, Object.keys(v[word]['accented']), weights);
+        //console.log(word, Object.keys(v[word]['accented']), weights);
         tense = weighted_choice(Object.keys(v[word]["accented"]), weights);
 
         //console.log(word, tense, Object.keys(v[word]["accented"][tense]));

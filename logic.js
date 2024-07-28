@@ -96,9 +96,22 @@ function keydown(ele) {
             let tallied = q.getAttribute("tallied");
             if (!tallied) {
                 q.setAttribute("tallied", true);
+                let k1 = null;
+                let k2 = null;
+                if ("tense" in current && "subj" in current) {
+                    k1 = "tense";
+                    k2 = "subj";
+                }
+                else if ("case" in current && "plur" in current){
+                    k1 = "case";
+                    k2 = "plur";
+                }
+                else {
+                    console.log("Error getting error data.", current)
+                }
                 update_stats(stats, false,
                     current["word_accented"],
-                    current["tense"] + "," + current["subj"]);
+                    current[k1] + "," + current[k2]);
             }
         }
 
